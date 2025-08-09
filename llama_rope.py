@@ -66,8 +66,8 @@ class MHA(nn.Module):
         self.O = nn.Linear(cfg.n_embd, cfg.n_embd, bias=cfg.attn_bias)
 
         mask = torch.triu(
-            torch.ones(1, 1, cfg.ctx_size, cfg.ctx_size), diagonal=1
-        ) * float("-inf")
+            torch.ones(1, 1, cfg.ctx_size, cfg.ctx_size) * float("-inf"), diagonal=1
+        )
         self.register_buffer("mask", mask)
 
         freqs = get_freqs_cis(cfg)
@@ -131,6 +131,19 @@ class GPT(nn.Module):
         self.blocks = nn.ModuleList([Block(cfg) for _ in range(cfg.n_layers)])
         self.norm = RMSNorm(cfg)
         self.lm_head = nn.Linear(cfg.n_embd, cfg.vocab_size)
+
+        self.apply(self._init_weights)
+    
+    def _init_weights(self, m: nn.Module) -> None:
+        if isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                torch.nn.init.zeros_(m.bias)
+        elif isinstance(m, nn.Embedding):
+            nn.init.xavier_uniform_(m.weight)
+        elif isinstance(m, RMSNorm):
+            torch.nn.init.ones_(m.w)
+
     
     def forward(self, x: Tensor) -> Tensor:
         
@@ -139,3 +152,10 @@ class GPT(nn.Module):
             x = block(x)
         
         return self.lm_head(self.norm(x))
+
+    def generate(self, x, max_new_tokens):
+        for _ in range(max_new_tokens):
+            logits = self(x)[:, -1]
+            token = torch.argmax(logits, -1).unsqueeze(1)
+            x = torch.cat([x, token], dim=1)
+        return x
