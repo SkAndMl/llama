@@ -1,0 +1,23 @@
+{
+  "embedding_type": "pos",
+  "batch_size": 16,
+  "max_steps": 1000,
+  "model_config": {
+    "vocab_size": 50257,
+    "ctx_size": 256,
+    "n_embd": 256,
+    "n_heads": 4,
+    "n_layers": 4,
+    "bias": false,
+    "attn_bias": false,
+    "device": "mps",
+    "theta": 10000,
+    "eps": 1e-09,
+    "ffn_dim": 384
+  },
+  "model_info": {
+    "total_parameters": 28012369,
+    "trainable_parameters": 28012369,
+    "model_size_mb": 106.85870742797852
+  }
+}
